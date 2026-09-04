@@ -22,18 +22,18 @@ export function createOceanMaterial(config: { color: string; roughness: number }
   });
   material.onBeforeCompile = (shader) => {
     shader.uniforms.sunDirection = { value: sunDirection.clone().normalize() };
-    shader.vertexShader = `varying vec3 vWorldNormal;\nvarying vec3 vWorldPosition;\n${shader.vertexShader}`;
+    shader.vertexShader = `varying vec3 vWorldNormal;\n${shader.vertexShader}`;
     shader.vertexShader = shader.vertexShader.replace(
       '#include <worldpos_vertex>',
-      '#include <worldpos_vertex>\n  vWorldNormal = normalize(mat3(modelMatrix) * objectNormal);\n  vWorldPosition = worldPosition.xyz;',
+      '#include <worldpos_vertex>\n  vWorldNormal = normalize(mat3(modelMatrix) * objectNormal);',
     );
-    shader.fragmentShader = `uniform vec3 sunDirection;\nvarying vec3 vWorldNormal;\nvarying vec3 vWorldPosition;\n${shader.fragmentShader}`;
+    shader.fragmentShader = `uniform vec3 sunDirection;\nvarying vec3 vWorldNormal;\n${shader.fragmentShader}`;
     shader.fragmentShader = shader.fragmentShader.replace(
-      '#include <output_fragment>',
+      '#include <opaque_fragment>',
       `float oceanLight = smoothstep(-0.2, 0.55, dot(normalize(vWorldNormal), sunDirection));
        float glint = pow(max(dot(reflect(-sunDirection, normalize(vWorldNormal)), normalize(cameraPosition - vWorldPosition)), 0.0), 48.0);
        outgoingLight *= mix(0.28, 1.0, oceanLight) + glint * 0.42;
-       #include <output_fragment>`,
+       #include <opaque_fragment>`,
     );
   };
   return material;

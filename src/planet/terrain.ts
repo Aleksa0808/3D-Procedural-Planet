@@ -106,7 +106,8 @@ export class TerrainField {
 export function elevationColor(sample: TerrainSample, position: THREE.Vector3, config: PlanetConfig): THREE.Color {
   const latitude = Math.abs(position.y / position.length());
   const coldness = Math.max(0, (latitude - 0.48) * 1.4);
-  const snowLine = 0.38 - config.terrain.snowAmount * 0.23;
+  const highlandLine = 0.5;
+  const snowLine = 0.58 + (1 - config.terrain.snowAmount) * 0.2;
   const normalized = THREE.MathUtils.clamp(sample.elevation * 0.8 + 0.47, 0, 1);
   const beach = new THREE.Color('#b99e70');
   const lowland = new THREE.Color('#596f4d');
@@ -117,12 +118,12 @@ export function elevationColor(sample: TerrainSample, position: THREE.Vector3, c
 
   if (normalized < 0.31) {
     color.copy(beach).lerp(lowland, normalized / 0.31);
-  } else if (normalized < 0.59) {
-    color.copy(lowland).lerp(highland, (normalized - 0.31) / 0.28);
+  } else if (normalized < highlandLine) {
+    color.copy(lowland).lerp(highland, (normalized - 0.31) / (highlandLine - 0.31));
   } else if (normalized < snowLine) {
-    color.copy(highland).lerp(rock, (normalized - 0.59) / Math.max(0.01, snowLine - 0.59));
+    color.copy(highland).lerp(rock, (normalized - highlandLine) / (snowLine - highlandLine));
   } else {
-    color.copy(rock).lerp(snow, THREE.MathUtils.clamp((normalized - snowLine) / 0.28, 0, 1));
+    color.copy(rock).lerp(snow, THREE.MathUtils.clamp((normalized - snowLine) / 0.22, 0, 1));
   }
   if (coldness > 0) color.lerp(snow, coldness * config.terrain.snowAmount * 0.38);
   return color;
